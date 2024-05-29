@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jeu de Puzzle de Mots</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        #word-container {
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        #user-input {
+            margin-bottom: 10px;
+            padding: 5px;
+            width: 200px;
+            box-sizing: border-box;
+        }
+
+        #submit-word {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #skip-word {
+            padding: 10px 20px;
+            background-color: #f44336;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        #help-word {
+            padding: 10px 20px;
+            background-color: #8e853e;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #result {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+
+        .sense-words {
+            text-align: left;
+            margin-top: 20px;
+            padding-left: 20px;
+            color: #FFA500;
+        }
+
+        .correct {
+            color: green;
+        }
+
+        .incorrect {
+            color: red;
+        }
+
+        .level-message {
+            margin-top: 20px;
+            color: #3cff00; /* Couleur dorée */
+            font-size: 20px;
+        }
+
+        .star-image {
+            width: 100px;
+            height: auto;
+        }
+
+        .aide-message {
+            margin-top: 20px;
+            color: #0000FF;
+            font-style: italic;
+        }
+        footer{
+            float: right;
+            margin-top: 250px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Jeu de Puzzle de Mots</h1>
+        <div id="word-container" class="word-container"></div>
+        <input type="text" id="user-input" class="user-input" placeholder="Entrez le mot complet">
+        <button id="submit-word" class="submit-word" disabled>Soumettre</button>
+        <button id="skip-word" class="skip-word">Passer</button>
+        <button id="help-word" class="help-word">Aide</button>
+        <div id="result" class="result"></div>
+        <div id="score" class="score">Score : 0</div>
+        <div id="sense-words" class="sense-words"></div>
+        <div id="level-message" class="level-message"></div>
+        <div id="aide-message" class="aide-message"></div>
+        <img src="star.png" alt="Étoile" class="star-image">
+    </div>
+    <footer>
+        <p>Moina Halima Ismael | Euloge Jofran</p>
+    </footer>
+    <script>
+        const niveaux = [
+    { mot: "_E_", motCorrect: "FER", motsSens: ["HER", "MER", "SER", "TER", "VER", "GER", "NER", "PER", "BER", "CER", "DER", "KER", "LER", "LER", "WER", "YER", "ZER"] },
+    { mot: "_ _ER", motCorrect: "ÔTER", motsSens: ["OSER", "AGER", "BIER", "CIER", "LIER","MIER","RIER","VIER","TIER","SUER","ODER","TIER","CRER","PIER","HIVER","YSER"] },
+    { mot: "_ I_E", motCorrect: "TIGE", motsSens: ["TIRE", "FIRE", "MIRE", "PINE", "LIRE","FILE","RIDE","SITE","VIRE","AIDE","BILE","CIDE","CITE","DIME","FINE","HIRE","LICE","LIEE","LIFE","PILE","TIDE","VILE"] },
+    { mot: "C_AI_E", motCorrect: "CHAISE", motsSens: ["CHAIRE", "CLAIRE", "CHAINE","CHAIPE"] },
+    { mot: "LI_ _ _", motCorrect: "LIVRE", motsSens: ["LIANE", "LIGNE", "LITRE", "LISTE","LISSE","LIBRE","LICHE","LIEGE","LIENS","LIERE","LIEUR","LIEUX","LIGOT","LIMON","LISER","LIGUE","LINER ","LICHE","LIARD","LIAIS","LINGE"] },
+    { mot: "S_ _ _IL", motCorrect: "SOLEIL", motsSens: ["SOURCIL","SABIL","SENTIL","SERAIL","SOUTIL"] },
+    { mot: "S_R_N_T_", motCorrect: "SERENITE", motsSens: ["SERENTIE"] },
+    { mot: "P_R_D_X_L", motCorrect: "PARADOXAL", motsSens: ["PARADOKSAL", "PARODIXAL", "PARADOXOL", "PARODIXOL", "PARADOXIL"] },
+    { mot: "_P_T_MI_E", motCorrect: "EPITOMISE", motsSens: ["EPITOMIZE", "EPITIMISE", "EPITEMIZE", "EPITOMIUE", "EPITOMIYE"] },
+    { mot: "E_T_A_AG_N_", motCorrect: "EXTRAVAGANT", motsSens: ["EXTARVAGANT", "EXTRAVAGENT","EXTRAVAGAND"] },
+    { mot: "PR_D_ _ _L", motCorrect: "PRÉDEXIL", motsSens: ["PREDICAL", "PREDIXAL", "PREDOCAL", "PREDOXAL"] },
+    { mot: "_YSTE_I_U_", motCorrect: "MYSTERIEUX", motsSens: ["SYSTEMIQUE", "MYSTIQUE", "MYSTERIE", "MYSTIFIE", "MYSTICIE"] },
+    { mot: "C_NC_PSC_NC_", motCorrect: "CONCUPSCENCE", motsSens: ["CONCUPISCIENCE", "CONCUPISSENCE", "CONCUPICENCE", "CONCUPESCENCE", "CONCUPICENCE"] },
+    { mot: "D_S_RGANIS_T_ _ _", motCorrect: "DESORGANISATEUR", motsSens: ["DESORGANISATION"] },
+    { mot: "_NV_R_NN_M_N_ _ _", motCorrect: "ENVIRONNEMENTAL", motsSens: [" "] },
+    { mot: "R_S_ _NS_B_L_ _ _R", motCorrect: "RESPONSABILISER", motsSens: ["RESPONSABILISÉS", "RESPONSABILISANT", "RESPONSABILISÉS", "RESPONSABILISER", "RESPONSABILISAI"] },
+    { mot: "C_NS_RV_T_ _ R_", motCorrect: "CONSERVATOIRE", motsSens: ["CONSERVATEURS", "CONSERVATEURE"] },
+    { mot: "C_M_U_IC_T_ _ _", motCorrect: "COMMUNICATION", motsSens: ["COMMUNICATIVE", "COMMUNICATIER", "COMMUNICATEUR"] },
+    { mot: "I_N_VAT_V_T_", motCorrect: "INNOVATIVITE", motsSens: [""] },
+    { mot: "D_V_L_P_E_ _ _ _", motCorrect: "DEVELOPPEMENT", motsSens: ["DEVELOPPEUSES"] },
+    { mot: "R_V_L_T_O_ _ A_R_", motCorrect: "REVOLUTIONNAIRE", motsSens: [""] },
+    { mot: "P_O_E_SI_N_ A_I_ _ _", motCorrect: "PROFESSIONNALISME", motsSens: ["PROFESSIONNALISÉS", "PROFESSIONNALISTE", "PROFESSIONNALISES", "PROFESSIONNALISE", "PROFESSIONNALITE"] },
+];
+
+        const messagesAide = [
+            "il manque deux consonnes",
+            "il manque une consonne et une seule voyelle seulement ",
+            "il manque deux consonne seulement ",
+            "il manque deux consonnes seulement ",
+            "Il manque deux consonne et une seule voyelle",
+            "Il manque deux voyelle et une consonne",
+            "Il manque deux voyelles, dont on a deux qui sont identiques ",
+            "Il manque deux voyelles dont le premier voyelle se répéte trois fois",
+            "Il manque trois voyelles different et une seule consonne",
+            "Il manque trois consonnes et une seule voyelle",
+            "Il manque deux voyelles, dont on a l'un qui se répéte deux fois et une consonne",
+            "Il manque une voyelle et trois consonnes",
+            "Il manque 3 voyelle, dont une voyelle se répéte",
+            "Il manque 4 voyelle et une seule consonne",
+            "Il manque 4 voyelle, dont une voyelle se répéte 3 fois et une seule consonne",
+            "Il manque 6 voyelle, dont le deuxiéme voyelle se répéte deux fois et le qutriéme voyelle qui se répéte deux fois, et une seule consonne",
+            "Il manque 4 voyelle, dont le prémier voyelle se répéte ",
+            "Il manque 3 voyelle, dont le prémier voyelle se répéte et deux consonnes ",
+            "Il manque 3 voyelle, dont le deuxiéme voyelle se répéte et une seule consonne ",
+            "Il manque 2 voyelle, dont le prémier voyelle se répéte et 4 consonnes ",
+            "Il manque 4 voyelle, dont le prémier et le troisiéme voyelle voyelle se répétent et 2 consonnes ",
+            "Il manque une seule voyelle, et 5 consonnes dont une consonne qui se répéte  ",
+            // Ajoutez d'autres messages d'aide si nécessaire
+        ];
+
+        let niveauActuel = 0;
+        let scoreTotal = 0;
+        const motsAvecSens = [];
+
+        const wordContainer = document.getElementById('word-container');
+        const userInput = document.getElementById('user-input');
+        const submitButton = document.getElementById('submit-word');
+        const skipButton = document.getElementById('skip-word');
+        const helpButton = document.getElementById('help-word');
+        const resultDiv = document.getElementById('result');
+        const scoreDiv = document.getElementById('score');
+        const senseWordsDiv = document.getElementById('sense-words');
+        const levelMessageDiv = document.getElementById('level-message');
+        const aideMessageDiv = document.getElementById('aide-message');
+
+        function afficherNiveau() {
+            const motCourant = niveaux[niveauActuel].mot;
+            wordContainer.textContent = "";
+            motCourant.split('').forEach(letter => {
+                const letterSpan = document.createElement('span');
+                if (letter === "_") {
+                    letterSpan.textContent = '_ ';
+                } else {
+                    letterSpan.textContent = letter + ' ';
+                }
+                wordContainer.appendChild(letterSpan);
+            });
+        }
+
+        function verifierMot() {
+            const userWord = userInput.value.trim().toUpperCase();
+            const motCorrect = niveaux[niveauActuel].motCorrect;
+            const motsSens = niveaux[niveauActuel].motsSens;
+
+            if (userWord === motCorrect) {
+                scoreTotal += 10; // Augmenter le score de 10 seulement si correct
+                resultDiv.textContent = "Correct ! Vous avez trouvé !";
+                resultDiv.classList.remove('incorrect');
+                resultDiv.classList.add('correct');
+                passerQuestionSuivante();
+            } else if (motsSens.includes(userWord)) {
+                resultDiv.textContent = "Ça a du sens, mais ce n'est pas le bon mot.";
+                scoreTotal += 5;
+                resultDiv.classList.remove('incorrect');
+                resultDiv.classList.remove('correct');
+                motsAvecSens.push(userWord);
+                afficherMotsAvecSens();
+            } else {
+                resultDiv.textContent = "Incorrect ! Essayez à nouveau !";
+                resultDiv.classList.remove('correct');
+                resultDiv.classList.add('incorrect');
+            }
+
+            scoreDiv.textContent = `Score : ${scoreTotal}`;
+            userInput.value = "";
+            setTimeout(() => {
+                resultDiv.textContent = "";
+            }, 2000);
+        }
+
+        function passerQuestionSuivante() {
+            effacerAide(); // Effacer le message d'aide
+            niveauActuel++;
+            if (niveauActuel < niveaux.length) {
+                afficherNiveau();
+                submitButton.disabled = true; // Désactiver le bouton Soumettre
+                effacerMotsAvecSens();
+                afficherMessageNiveau();
+            } else {
+                wordContainer.textContent = "Félicitations ! Vous avez terminé tous les niveaux !";
+                userInput.style.display = 'none';
+                submitButton.style.display = 'none';
+                skipButton.style.display = 'none';
+                helpButton.style.display = 'none';
+                resultDiv.style.display = 'none';
+                scoreDiv.style.display = 'none';
+                effacerMotsAvecSens();
+            }
+        }
+
+        function afficherMessageNiveau() {
+            if (niveauActuel === 5) {
+                levelMessageDiv.textContent = "Niveau 2 ";
+            } else if (niveauActuel === 10) {
+                levelMessageDiv.textContent = "Niveau 3 ";
+            } else if (niveauActuel === 15){
+                levelMessageDiv.textContent = "Niveau 4 ";
+            } else if (niveauActuel === 20){
+                levelMessageDiv.textContent = "Niveau 5 ";
+            }else if (niveauActuel === 25){
+                levelMessageDiv.textContent = "Niveau 6 ";
+            }else if (niveauActuel === 30){
+                levelMessageDiv.textContent = "Niveau 7 ";
+            }
+        }
+
+        function afficherMotsAvecSens() {
+            senseWordsDiv.innerHTML = "";
+            if (motsAvecSens.length > 0) {
+                senseWordsDiv.innerHTML += "<p>Ça a du sens, mais ce n'est pas le bon mot :</p>";
+                motsAvecSens.forEach(mot => {
+                    senseWordsDiv.innerHTML += `<p>${mot}</p>`;
+                });
+            }
+        }
+
+        function effacerMotsAvecSens() {
+            motsAvecSens.length = 0;
+            senseWordsDiv.innerHTML = "";
+            levelMessageDiv.textContent = "";
+        }
+
+        function afficherAide() {
+            if (scoreTotal >= 100) {
+                aideMessageDiv.textContent = messagesAide[niveauActuel];
+                scoreTotal -= 5; // Diminuer le score de 5 points
+                scoreDiv.textContent = `Score : ${scoreTotal}`;
+            } else {
+                aideMessageDiv.textContent = "Vous n'avez pas assez de points pour demander de l'aide.A titre de rappel : il faut 100 points";
+            }
+        }
+
+        function effacerAide() {
+            aideMessageDiv.textContent = ""; // Effacer le contenu du message d'aide
+        }
+
+        userInput.addEventListener('input', () => {
+            submitButton.disabled = userInput.value.trim() === "";
+        });
+
+        submitButton.addEventListener('click', verifierMot);
+        skipButton.addEventListener('click', () => {
+            passerQuestionSuivante();
+            scoreTotal -= 5; // Diminuer le score de 1 lors du passage d'une question
+            scoreDiv.textContent = `Score : ${scoreTotal}`;
+        });
+        helpButton.addEventListener('click', afficherAide);
+        afficherNiveau();
+    </script>
+</body>
+</html>
